@@ -74,6 +74,20 @@ export const loginUser = (email, password) => dispatch => {
     });
 };
 
+export const loginGoogle = provider => dispatch => {
+  dispatch(requestLogin());
+  myFirebase
+    .auth()
+    .signInWithPopup(provider)
+    .then(user => {
+      dispatch(recieveLogin(user));
+    })
+    .catch(error => {
+      console.log("login error: " + error);
+      dispatch(loginError());
+    });
+};
+
 export const logoutUser = () => dispatch => {
   dispatch(requestLogout());
   myFirebase
