@@ -6,23 +6,40 @@ import {
   LOGOUT_SUCCESS,
   LOGOUT_FAILURE,
   VERIFY_REQUEST,
-  VERIFY_SUCCESS
+  VERIFY_SUCCESS,
+  SIGNUP_REQUEST,
+  SIGNUP_FAILURE
 } from "../actions/";
 
 export default (
   state = {
+    isSigningup: false,
     isLoggingIn: false,
     isLoggingOut: false,
     isVerifying: false,
     verifyingError: false,
     loginError: false,
     logoutError: false,
+    signupError: false,
     isAuthenticated: false,
     user: {}
   },
   action
 ) => {
   switch (action.type) {
+    case SIGNUP_REQUEST:
+      return {
+        ...state,
+        isSigningup: true,
+        signupError: false
+      };
+    case SIGNUP_FAILURE:
+      return {
+        ...state,
+        isSigningup: false,
+        isAuthenticated: false,
+        signupError: true
+      };
     case LOGIN_REQUEST:
       return {
         ...state,

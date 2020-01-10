@@ -12,15 +12,20 @@ export const LOGOUT_FAILURE = "LOGOUT_FAILURE";
 export const VERIFY_REQUEST = "VERIFY_REQUEST";
 export const VERIFY_SUCCESS = "VERIFY_SUCCESS";
 
+export const SIGNUP_REQUEST = "SIGNUP_REQUEST";
+export const SIGNUP_FAILURE = "SIGNUP_FAILURE";
+
 const requestLogin = () => {
   return {
     type: LOGIN_REQUEST
   };
 };
 
-const recieveLogin = () => {
+const recieveLogin = user => {
+  console.log("user: " + JSON.stringify(user));
   return {
-    type: LOGIN_SUCCESS
+    type: LOGIN_SUCCESS,
+    user: user
   };
 };
 
@@ -60,6 +65,18 @@ const verifySuccess = () => {
   };
 };
 
+const requesSignup = () => {
+  return {
+    type: SIGNUP_REQUEST
+  };
+};
+
+const SignupError = () => {
+  return {
+    type: SIGNUP_FAILURE
+  };
+};
+
 export const loginUserEmail = (email, password) => dispatch => {
   dispatch(requestLogin());
   myFirebase
@@ -92,7 +109,16 @@ export const loginUserGoogle = () => dispatch => {
     });
 };
 
-export const signUpEmail = () => dispatch => {};
+export const signUpEmail = (email, password) => dispatch => {
+  dispatch(requesSignup());
+  myFirebase
+    .auth()
+    .createUserWithEmailAndPassword(email, password)
+    .catch(function(error) {
+      console.log("signup error: " + error.code);
+      dispatch(SignupError());
+    });
+};
 
 export const logoutUser = () => dispatch => {
   dispatch(requestLogout());
