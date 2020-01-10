@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import firebase from "firebase/app";
-//import { myFirebase } from "../firebase/firebase";
 import { useDispatch, useSelector } from "react-redux";
 import { Redirect } from "react-router-dom";
-import { loginUser } from "../actions";
+import { loginUserEmail, loginUserGoogle, signUpEmail } from "../actions";
 import {
   Button,
   Form,
@@ -21,25 +19,15 @@ const Login = () => {
   const dispatch = useDispatch();
 
   const handleSubmit = () => {
-    dispatch(loginUser(email, password));
+    dispatch(loginUserEmail(email, password));
   };
 
   const handleGoogle = () => {
-    var provider = new firebase.auth.GoogleAuthProvider();
+    dispatch(loginUserGoogle());
+  };
 
-    provider.addScope("https://www.googleapis.com/auth/plus.login");
-
-    firebase
-      .auth()
-      .signInWithPopup(provider)
-      .then(function(authData) {
-        console.log(authData);
-      })
-      .catch(function(error) {
-        console.log(error);
-      });
-
-    //dispatch(loginGoogle(provider));
+  const handleSignUp = () => {
+    dispatch(signUpEmail(email, password));
   };
 
   if (isAuthenticated) {
@@ -81,8 +69,16 @@ const Login = () => {
               <Button color="blue" fluid size="large" onClick={handleSubmit}>
                 Login
               </Button>
-              <Button color="red" fluid size="large" onClick={handleGoogle}>
+              <Button
+                color="google plus"
+                fluid
+                size="large"
+                onClick={handleGoogle}
+              >
                 Sign in with google
+              </Button>
+              <Button color="green" fluid size="large" onClick={handleSignUp}>
+                Sign Up
               </Button>
             </Segment>
           </Form>

@@ -1,4 +1,5 @@
 import { myFirebase } from "../firebase/firebase";
+import firebase from "firebase/app";
 
 export const LOGIN_REQUEST = "LOGIN_REQUEST";
 export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
@@ -59,7 +60,7 @@ const verifySuccess = () => {
   };
 };
 
-export const loginUser = (email, password) => dispatch => {
+export const loginUserEmail = (email, password) => dispatch => {
   dispatch(requestLogin());
   myFirebase
     .auth()
@@ -74,19 +75,24 @@ export const loginUser = (email, password) => dispatch => {
     });
 };
 
-export const loginGoogle = provider => dispatch => {
+export const loginUserGoogle = () => dispatch => {
   dispatch(requestLogin());
+  var provider = new firebase.auth.GoogleAuthProvider();
+
   myFirebase
     .auth()
     .signInWithPopup(provider)
-    .then(user => {
-      dispatch(recieveLogin(user));
+    .then(function(result) {
+      dispatch(recieveLogin(result.user));
     })
     .catch(error => {
+      // TODO HANDLE ERROR
       console.log("login error: " + error);
       dispatch(loginError());
     });
 };
+
+export const signUpEmail = () => dispatch => {};
 
 export const logoutUser = () => dispatch => {
   dispatch(requestLogout());
