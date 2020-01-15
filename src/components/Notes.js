@@ -66,6 +66,7 @@ const Notes = props => {
           <Button color="green" onClick={handleSave}>
             Save and go home
           </Button>
+          <Button>Cancle</Button>
         </Link>
         <Button onClick={handleDelete}>Delete</Button>
       </Grid.Column>
