@@ -1,4 +1,4 @@
-import { myFirebase } from "../firebase/firebase";
+import { myFirebase, db } from "../firebase/firebase";
 import firebase from "firebase/app";
 
 export const LOGIN_REQUEST = "LOGIN_REQUEST";
@@ -15,17 +15,47 @@ export const VERIFY_SUCCESS = "VERIFY_SUCCESS";
 export const SIGNUP_REQUEST = "SIGNUP_REQUEST";
 export const SIGNUP_FAILURE = "SIGNUP_FAILURE";
 
+export const NOTES_REQUEST = "NOTES_REQUEST";
+export const NOTES_SUCCESS = "NOTES_SUCCESS";
+
+export const NOTE_ADD = "NOTE_ADD";
+
+export const SAVE_NOTE_REQUEST = "SAVE_NOTE_REQUEST";
+export const NOTE_DELETE = "NOTE_DELETE";
+export const DELETE_CONFIRM = "DELETE_CONFIRM";
+
 const requestLogin = () => {
   return {
     type: LOGIN_REQUEST
   };
 };
 
-const recieveLogin = user => {
+const noteDelet = notes => {
+  return {
+    type: NOTE_DELETE,
+    notes
+  };
+};
+
+const deleteConfirm = () => {
+  return {
+    type: DELETE_CONFIRM
+  };
+};
+
+const newNote = notes => {
+  return {
+    type: NOTE_ADD,
+    notes
+  };
+};
+
+const recieveLogin = (user, notes) => {
   console.log("user: " + JSON.stringify(user));
   return {
     type: LOGIN_SUCCESS,
-    user: user
+    user,
+    notes
   };
 };
 
@@ -74,6 +104,12 @@ const requesSignup = () => {
 const SignupError = () => {
   return {
     type: SIGNUP_FAILURE
+  };
+};
+
+const RequestSaveNote = () => {
+  return {
+    type: SAVE_NOTE_REQUEST
   };
 };
 
@@ -139,8 +175,92 @@ export const verifyAuth = () => dispatch => {
   dispatch(verifyRequest());
   myFirebase.auth().onAuthStateChanged(user => {
     if (user !== null) {
-      dispatch(recieveLogin(user));
+      dispatch(getUserNotes(user));
+      //dispatch(recieveLogin(user));
     }
     dispatch(verifySuccess());
+  });
+};
+
+export const getUserNotes = user => dispatch => {
+  //dispatch(requestNotes);
+  let notes = [];
+  const notesRef = db
+    .collection("users")
+    .doc(user.uid)
+    .collection("notes");
+  notesRef.get().then(querySnapshot => {
+    querySnapshot.forEach(doc => {
+      var data = doc.data();
+      notes.push({
+        ID: doc.id,
+        TITLE: data.title,
+        BODY: data.body
+      });
+    });
+    dispatch(recieveLogin(user, notes));
+  });
+};
+
+export const saveNote = (uid, note, notes) => dispatch => {
+  dispatch(RequestSaveNote());
+  db.collection("users")
+    .doc(uid)
+    .collection("notes")
+    .add({
+      title: note.TITLE,
+      body: note.BODY
+    })
+    .then(docRef => {
+      note.ID = docRef.id;
+      notes.push(note);
+      dispatch(newNote(notes));
+      console.log("Document written with ID: ", JSON.stringify(note));
+    })
+    .catch(error => {
+      console.error("Error adding document: ", error);
+    });
+};
+
+export const updateNote = data => dispatch => {
+  const { uid, nid, title, body } = data;
+  dispatch(RequestSaveNote());
+  db.collection("users")
+    .doc(uid)
+    .collection("notes")
+    .doc(nid)
+    .update({
+      title: title,
+      body: body
+    })
+    .then(() => {
+      console.log("note updated");
+    })
+    .catch(error => {
+      console.error("Error adding document: ", error);
+    });
+};
+
+export const deletNote = data => dispatch => {
+  const { uid, nid, oldNotes } = data;
+  db.collection("users")
+    .doc(uid)
+    .collection("notes")
+    .doc(nid)
+    .delete()
+    .then(() => {
+      const notes = deleteArray(oldNotes, nid);
+      console.log("NEW NOTES" + JSON.stringify(notes));
+      dispatch(noteDelet(notes));
+      dispatch(deleteConfirm());
+    })
+    .catch(function(error) {
+      console.error("Error removing document: ", error);
+    });
+};
+
+const deleteArray = (arr, id) => {
+  return arr.filter(function(note) {
+    return note.ID !== id;
   });
 };
