@@ -14,7 +14,8 @@ import {
   SAVE_NOTE_REQUEST,
   NOTE_DELETE,
   DELETE_CONFIRM,
-  NOTE_ADD
+  NOTE_ADD,
+  NOTE_EDIT
 } from "../actions/";
 
 export default (
@@ -130,6 +131,11 @@ export default (
         deleted: false
       };
     case NOTE_ADD:
+      return {
+        ...state,
+        notes: action.notes
+      };
+    case NOTE_EDIT:
       return {
         ...state,
         notes: action.notes

@@ -2,14 +2,7 @@ import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, Redirect } from "react-router-dom";
 import { updateNote, deletNote } from "../actions";
-import {
-  Grid,
-  Header,
-  Form,
-  TextArea,
-  Button
-  //Segment
-} from "semantic-ui-react";
+import { Grid, Header, Form, TextArea, Button } from "semantic-ui-react";
 
 const Notes = props => {
   const { params } = props.match;
@@ -35,12 +28,19 @@ const Notes = props => {
 
   const handleSave = () => {
     const note = {
-      uid: user.uid,
-      title: title,
-      body: body,
-      nid: params.id
+      TITLE: title,
+      BODY: body,
+      ID: params.id
     };
-    dispatch(updateNote(note));
+    const uid = user.uid;
+    const oldNotes = notes;
+
+    const data = {
+      note,
+      uid,
+      oldNotes
+    };
+    dispatch(updateNote(data));
   };
 
   const handleDelete = () => {
@@ -60,12 +60,12 @@ const Notes = props => {
         <Header>{title}</Header>
         <Form>
           <TextArea value={body} onChange={e => setBody(e.target.value)} />
-          <Button color="green" fluid size="large" onClick={handleSave}>
-            Save Note
-          </Button>
         </Form>
+
         <Link to={"/"}>
-          <Button>Notes Home</Button>
+          <Button color="green" onClick={handleSave}>
+            Save and go home
+          </Button>
         </Link>
         <Button onClick={handleDelete}>Delete</Button>
       </Grid.Column>

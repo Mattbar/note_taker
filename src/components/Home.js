@@ -30,7 +30,7 @@ const Home = () => {
       return notes.map(note => {
         return (
           <Link key={note.ID} to={"/note/" + note.ID}>
-            <Message>{note.TITLE + ", " + note.ID}</Message>
+            <Message>{note.TITLE}</Message>
           </Link>
         );
       });

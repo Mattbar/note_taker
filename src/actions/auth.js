@@ -19,6 +19,7 @@ export const NOTES_REQUEST = "NOTES_REQUEST";
 export const NOTES_SUCCESS = "NOTES_SUCCESS";
 
 export const NOTE_ADD = "NOTE_ADD";
+export const NOTE_EDIT = "NOTE_EDIT";
 
 export const SAVE_NOTE_REQUEST = "SAVE_NOTE_REQUEST";
 export const NOTE_DELETE = "NOTE_DELETE";
@@ -40,6 +41,13 @@ const noteDelet = notes => {
 const deleteConfirm = () => {
   return {
     type: DELETE_CONFIRM
+  };
+};
+
+const editNote = notes => {
+  return {
+    type: NOTE_EDIT,
+    notes
   };
 };
 
@@ -223,17 +231,19 @@ export const saveNote = (uid, note, notes) => dispatch => {
 };
 
 export const updateNote = data => dispatch => {
-  const { uid, nid, title, body } = data;
+  const { uid, oldNotes, note } = data;
   dispatch(RequestSaveNote());
   db.collection("users")
     .doc(uid)
     .collection("notes")
-    .doc(nid)
+    .doc(note.ID)
     .update({
-      title: title,
-      body: body
+      title: note.TITLE,
+      body: note.BODY
     })
     .then(() => {
+      const notes = updateArray(oldNotes, note);
+      dispatch(editNote(notes));
       console.log("note updated");
     })
     .catch(error => {
@@ -263,4 +273,12 @@ const deleteArray = (arr, id) => {
   return arr.filter(function(note) {
     return note.ID !== id;
   });
+};
+
+const updateArray = (arr, note) => {
+  var index = arr.findIndex(x => x.ID === note.ID);
+
+  arr[index] = note;
+
+  return arr;
 };

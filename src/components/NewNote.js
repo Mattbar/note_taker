@@ -41,7 +41,7 @@ const Notes = () => {
             placeholder={"Note Body"}
             onChange={e => setBody(e.target.value)}
           />
-          <Button color="green" fluid size="large" onClick={handleSave}>
+          <Button color="green" size="medium" onClick={handleSave}>
             Save Note
           </Button>
           <Link to={"/"}>
