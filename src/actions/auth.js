@@ -1,9 +1,11 @@
-import { myFirebase, db } from "../firebase/firebase";
+import { myFirebase, db, storage } from "../firebase/firebase";
 import firebase from "firebase/app";
 
 export const LOGIN_REQUEST = "LOGIN_REQUEST";
 export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
 export const LOGIN_FAILURE = "LOGIN_FAILURE";
+
+export const GETTING_DATA = "GETTING_DATA";
 
 export const LOGOUT_REQUEST = "LOGOUT_REQUEST";
 export const LOGOUT_SUCCESS = "LOGOUT_SUCCESS";
@@ -24,6 +26,16 @@ export const NOTE_EDIT = "NOTE_EDIT";
 export const SAVE_NOTE_REQUEST = "SAVE_NOTE_REQUEST";
 export const NOTE_DELETE = "NOTE_DELETE";
 export const DELETE_CONFIRM = "DELETE_CONFIRM";
+
+export const FILES_DOWNLOADED = "FILES_DOWNLOADED";
+export const UPLOADING_FILE = "UPLOADING_FILE";
+export const FILE_UPLOADED = "FILE_UPLOADED";
+
+const uploadingFile = type => {
+  return {
+    type: type
+  };
+};
 
 const requestLogin = () => {
   return {
@@ -121,14 +133,24 @@ const RequestSaveNote = () => {
   };
 };
 
+const setFiles = files => {
+  return {
+    type: FILES_DOWNLOADED,
+    files
+  };
+};
+const getData = user => dispatch => {
+  dispatch(getUserNotes(user));
+};
 export const loginUserEmail = (email, password) => dispatch => {
   dispatch(requestLogin());
   myFirebase
     .auth()
     .signInWithEmailAndPassword(email, password)
     .then(user => {
-      dispatch(recieveLogin(user));
+      dispatch(getData(user));
     })
+
     .catch(error => {
       // TODO HANDLE ERROR
       console.log("login error: " + error);
@@ -144,7 +166,7 @@ export const loginUserGoogle = () => dispatch => {
     .auth()
     .signInWithPopup(provider)
     .then(function(result) {
-      dispatch(recieveLogin(result.user));
+      dispatch(getData(result.user));
     })
     .catch(error => {
       // TODO HANDLE ERROR
@@ -183,10 +205,10 @@ export const verifyAuth = () => dispatch => {
   dispatch(verifyRequest());
   myFirebase.auth().onAuthStateChanged(user => {
     if (user !== null) {
-      dispatch(getUserNotes(user));
+      dispatch(getData(user));
       //dispatch(recieveLogin(user));
+      dispatch(verifySuccess());
     }
-    dispatch(verifySuccess());
   });
 };
 
@@ -203,9 +225,12 @@ export const getUserNotes = user => dispatch => {
       notes.push({
         ID: doc.id,
         TITLE: data.title,
-        BODY: data.body
+        BODY: data.body,
+        FILES: []
       });
     });
+
+    dispatch(getFiles(notes));
     dispatch(recieveLogin(user, notes));
   });
 };
@@ -217,7 +242,8 @@ export const saveNote = (uid, note, notes) => dispatch => {
     .collection("notes")
     .add({
       title: note.TITLE,
-      body: note.BODY
+      body: note.BODY,
+      files: []
     })
     .then(docRef => {
       note.ID = docRef.id;
@@ -267,6 +293,39 @@ export const deletNote = data => dispatch => {
     .catch(function(error) {
       console.error("Error removing document: ", error);
     });
+};
+
+export const uploadFile = data => dispatch => {
+  dispatch(uploadingFile(UPLOADING_FILE));
+  const { nid, file, note, oldNotes } = data;
+  var storageRef = storage.ref();
+
+  var noteStorageRef = storageRef.child(nid);
+  var fileStorageRef = noteStorageRef.child(file.name);
+
+  fileStorageRef.put(file).then(() => {
+    console.log("Uploaded File");
+    fileStorageRef.getDownloadURL().then(url => {
+      note.FILES.push(url);
+      const notes = updateArray(oldNotes, note);
+      dispatch(editNote(notes));
+    });
+  });
+};
+
+export const getFiles = notes => dispatch => {
+  notes.forEach(note => {
+    var listRef = storage.ref().child(note.ID);
+    listRef.listAll().then(res => {
+      res.items.forEach(itemRef => {
+        itemRef.getDownloadURL().then(url => {
+          note.FILES.push(url);
+        });
+      });
+    });
+  });
+
+  dispatch(setFiles(notes));
 };
 
 const deleteArray = (arr, id) => {
