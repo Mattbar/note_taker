@@ -15,7 +15,10 @@ import {
   NOTE_DELETE,
   DELETE_CONFIRM,
   NOTE_ADD,
-  NOTE_EDIT
+  NOTE_EDIT,
+  FILES_DOWNLOADED,
+  UPLOADING_FILE,
+  FILE_UPLOADED
 } from "../actions/";
 
 export default (
@@ -139,6 +142,21 @@ export default (
       return {
         ...state,
         notes: action.notes
+      };
+    case FILES_DOWNLOADED:
+      return {
+        ...state,
+        notes: action.notes
+      };
+    case UPLOADING_FILE:
+      return {
+        ...state,
+        isGettingData: true
+      };
+    case FILE_UPLOADED:
+      return {
+        ...state,
+        isGettingData: false
       };
     default:
       return state;
