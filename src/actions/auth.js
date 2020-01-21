@@ -1,6 +1,8 @@
 import { myFirebase, db, storage } from "../firebase/firebase";
 import firebase from "firebase/app";
 
+import { deleteArray, updateArray } from "../constants/helpers";
+
 export const LOGIN_REQUEST = "LOGIN_REQUEST";
 export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
 export const LOGIN_FAILURE = "LOGIN_FAILURE";
@@ -71,7 +73,6 @@ const newNote = notes => {
 };
 
 const recieveLogin = (user, notes) => {
-  console.log("user: " + JSON.stringify(user));
   return {
     type: LOGIN_SUCCESS,
     user,
@@ -212,7 +213,6 @@ export const verifyAuth = () => dispatch => {
 };
 
 export const getUserNotes = user => dispatch => {
-  //dispatch(requestNotes);
   let notes = [];
   const notesRef = db
     .collection("users")
@@ -325,18 +325,4 @@ export const getFiles = notes => dispatch => {
   });
 
   dispatch(setFiles(notes));
-};
-
-const deleteArray = (arr, id) => {
-  return arr.filter(function(note) {
-    return note.ID !== id;
-  });
-};
-
-const updateArray = (arr, note) => {
-  var index = arr.findIndex(x => x.ID === note.ID);
-
-  arr[index] = note;
-
-  return arr;
 };
