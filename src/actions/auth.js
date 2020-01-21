@@ -229,7 +229,7 @@ export const getUserNotes = user => dispatch => {
       });
     });
 
-    dispatch(getFiles(notes));
+    dispatch(getFiles(notes, user.uid));
     dispatch(recieveLogin(user, notes));
   });
 };
@@ -296,8 +296,11 @@ export const deletNote = data => dispatch => {
 
 export const uploadFile = data => dispatch => {
   dispatch(uploadingFile(UPLOADING_FILE));
-  const { nid, file, note, oldNotes } = data;
-  var storageRef = storage.ref();
+  const { uid, nid, file, note, oldNotes } = data;
+  var storageRef = storage
+    .ref()
+    .child("users")
+    .child(uid);
 
   var noteStorageRef = storageRef.child(nid);
   var fileStorageRef = noteStorageRef.child(file.name);
@@ -312,9 +315,13 @@ export const uploadFile = data => dispatch => {
   });
 };
 
-export const getFiles = notes => dispatch => {
+export const getFiles = (notes, uid) => dispatch => {
   notes.forEach(note => {
-    var listRef = storage.ref().child(note.ID);
+    var listRef = storage
+      .ref()
+      .child("users")
+      .child(uid)
+      .child(note.ID);
     listRef.listAll().then(res => {
       res.items.forEach(itemRef => {
         itemRef.getDownloadURL().then(url => {
