@@ -6,12 +6,5 @@
         "allow read, write": "if userID == request.auth.uid;"
       }
     }
-  },
-  "service firebase.storage" :{
-    "match /b/{bucket}/o": {
-      "match /users/{userID}/{allPaths=**}": {
-        "allow read, write": "if request.auth.uid == userID"
-      }
-    }
   }
 }
