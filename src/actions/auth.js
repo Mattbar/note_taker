@@ -32,6 +32,7 @@ export const DELETE_CONFIRM = "DELETE_CONFIRM";
 export const FILES_DOWNLOADED = "FILES_DOWNLOADED";
 export const UPLOADING_FILE = "UPLOADING_FILE";
 export const FILE_UPLOADED = "FILE_UPLOADED";
+export const PERCENT_UPLOAD = "PERCENT_UPLOAD";
 
 const uploadingFile = type => {
   return {
@@ -138,6 +139,13 @@ const setFiles = files => {
   return {
     type: FILES_DOWNLOADED,
     files
+  };
+};
+
+const updatePercent = percent => {
+  return {
+    type: PERCENT_UPLOAD,
+    percent
   };
 };
 const getData = user => dispatch => {
@@ -297,22 +305,34 @@ export const deletNote = data => dispatch => {
 export const uploadFile = data => dispatch => {
   dispatch(uploadingFile(UPLOADING_FILE));
   const { uid, nid, file, note, oldNotes } = data;
-  var storageRef = storage
+  var fileStorageRef = storage
     .ref()
     .child("users")
-    .child(uid);
+    .child(uid)
+    .child(nid)
+    .child(file.name);
 
-  var noteStorageRef = storageRef.child(nid);
-  var fileStorageRef = noteStorageRef.child(file.name);
-
-  fileStorageRef.put(file).then(() => {
-    console.log("Uploaded File");
-    fileStorageRef.getDownloadURL().then(url => {
-      note.FILES.push(url);
-      const notes = updateArray(oldNotes, note);
-      dispatch(editNote(notes));
-    });
-  });
+  fileStorageRef.put(file).on(
+    "state_changed",
+    snapShot => {
+      var progress = (snapShot.bytesTransferred / snapShot.totalBytes) * 100;
+      dispatch(updatePercent(progress));
+      console.log("Upload is " + progress + "% done");
+      console.log(snapShot.bytesTransferred);
+    },
+    error => {
+      console.log("error: " + error);
+    },
+    () => {
+      console.log("Uploaded File");
+      fileStorageRef.getDownloadURL().then(url => {
+        note.FILES.push(url);
+        const notes = updateArray(oldNotes, note);
+        dispatch(editNote(notes));
+        dispatch(uploadingFile(FILE_UPLOADED));
+      });
+    }
+  );
 };
 
 export const getFiles = (notes, uid) => dispatch => {

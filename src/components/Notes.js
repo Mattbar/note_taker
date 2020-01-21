@@ -14,7 +14,8 @@ import {
   ImageGroup,
   Image,
   Input,
-  Message
+  Message,
+  Progress
 } from "semantic-ui-react";
 
 const Notes = props => {
@@ -23,13 +24,15 @@ const Notes = props => {
   const deleted = useSelector(state => state.auth.deleted);
   const notes = useSelector(state => state.auth.notes);
   const loadingData = useSelector(state => state.auth.isGettingData);
+  const percent = useSelector(state => state.auth.uploadPercent);
   const dispatch = useDispatch();
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState();
   const [files, setFiles] = useState([]);
   const curNote = useRef();
+  const inputRef = useRef();
 
   const getNote = useCallback(() => {
     if (notes) {
@@ -65,7 +68,9 @@ const Notes = props => {
   };
 
   useEffect(() => {
-    getNote();
+    if (!loadingData) {
+      getNote();
+    }
   }, [getNote, loadingData]);
 
   const handleSave = () => {
@@ -103,9 +108,10 @@ const Notes = props => {
   };
 
   const handleUploadFile = e => {
-    if (file === null) {
+    if (file === null || inputRef.current.inputRef.current.value === "") {
       return;
     }
+
     const note = {
       TITLE: title,
       BODY: body,
@@ -120,9 +126,8 @@ const Notes = props => {
       nid: params.id,
       file
     };
-
     dispatch(uploadFile(data));
-    e.target.value = null;
+    inputRef.current.inputRef.current.value = "";
   };
   if (deleted) {
     return <Redirect to="/" />;
@@ -154,8 +159,11 @@ const Notes = props => {
 
         <Grid.Row>
           <Segment>
+            {loadingData && <Progress percent={percent} indicating />}
             <Input
               type="file"
+              disabled={loadingData}
+              ref={inputRef}
               action={{
                 icon: "upload",
                 onClick: handleUploadFile
