@@ -237,7 +237,7 @@ export const getUserNotes = user => dispatch => {
       });
     });
 
-    dispatch(getFiles(notes, user.uid));
+    getFiles(notes, user.uid);
     dispatch(recieveLogin(user, notes));
   });
 };
