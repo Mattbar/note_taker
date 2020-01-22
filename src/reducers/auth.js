@@ -138,11 +138,13 @@ export default (
     case NOTE_ADD:
       return {
         ...state,
+        isGettingData: false,
         notes: action.notes
       };
     case NOTE_EDIT:
       return {
         ...state,
+        isGettingData: false,
         notes: action.notes
       };
     case FILES_DOWNLOADED:

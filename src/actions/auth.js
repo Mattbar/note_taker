@@ -293,7 +293,6 @@ export const deletNote = data => dispatch => {
     .delete()
     .then(() => {
       const notes = deleteArray(oldNotes, nid);
-      console.log("NEW NOTES" + JSON.stringify(notes));
       dispatch(noteDelet(notes));
       dispatch(deleteConfirm());
     })
@@ -317,8 +316,6 @@ export const uploadFile = data => dispatch => {
     snapShot => {
       var progress = (snapShot.bytesTransferred / snapShot.totalBytes) * 100;
       dispatch(updatePercent(progress));
-      console.log("Upload is " + progress + "% done");
-      console.log(snapShot.bytesTransferred);
     },
     error => {
       console.log("error: " + error);
