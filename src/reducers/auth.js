@@ -18,7 +18,8 @@ import {
   NOTE_EDIT,
   FILES_DOWNLOADED,
   UPLOADING_FILE,
-  FILE_UPLOADED
+  FILE_UPLOADED,
+  PERCENT_UPLOAD
 } from "../actions/";
 
 export default (
@@ -33,6 +34,7 @@ export default (
     signupError: false,
     isAuthenticated: false,
     isGettingData: false,
+    uploadPercent: 100,
     deleted: false,
     user: {},
     notes: []
@@ -136,11 +138,13 @@ export default (
     case NOTE_ADD:
       return {
         ...state,
+        isGettingData: false,
         notes: action.notes
       };
     case NOTE_EDIT:
       return {
         ...state,
+        isGettingData: false,
         notes: action.notes
       };
     case FILES_DOWNLOADED:
@@ -151,12 +155,19 @@ export default (
     case UPLOADING_FILE:
       return {
         ...state,
-        isGettingData: true
+        isGettingData: true,
+        uploadPercent: 0
       };
     case FILE_UPLOADED:
       return {
         ...state,
-        isGettingData: false
+        isGettingData: false,
+        uploadPercent: 100
+      };
+    case PERCENT_UPLOAD:
+      return {
+        ...state,
+        uploadPercent: action.percent
       };
     default:
       return state;

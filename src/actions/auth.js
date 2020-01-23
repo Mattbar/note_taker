@@ -1,6 +1,8 @@
 import { myFirebase, db, storage } from "../firebase/firebase";
 import firebase from "firebase/app";
 
+import { deleteArray, updateArray } from "../constants/helpers";
+
 export const LOGIN_REQUEST = "LOGIN_REQUEST";
 export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
 export const LOGIN_FAILURE = "LOGIN_FAILURE";
@@ -30,6 +32,7 @@ export const DELETE_CONFIRM = "DELETE_CONFIRM";
 export const FILES_DOWNLOADED = "FILES_DOWNLOADED";
 export const UPLOADING_FILE = "UPLOADING_FILE";
 export const FILE_UPLOADED = "FILE_UPLOADED";
+export const PERCENT_UPLOAD = "PERCENT_UPLOAD";
 
 const uploadingFile = type => {
   return {
@@ -71,7 +74,6 @@ const newNote = notes => {
 };
 
 const recieveLogin = (user, notes) => {
-  console.log("user: " + JSON.stringify(user));
   return {
     type: LOGIN_SUCCESS,
     user,
@@ -137,6 +139,13 @@ const setFiles = files => {
   return {
     type: FILES_DOWNLOADED,
     files
+  };
+};
+
+const updatePercent = percent => {
+  return {
+    type: PERCENT_UPLOAD,
+    percent
   };
 };
 const getData = user => dispatch => {
@@ -212,7 +221,6 @@ export const verifyAuth = () => dispatch => {
 };
 
 export const getUserNotes = user => dispatch => {
-  //dispatch(requestNotes);
   let notes = [];
   const notesRef = db
     .collection("users")
@@ -229,7 +237,7 @@ export const getUserNotes = user => dispatch => {
       });
     });
 
-    dispatch(getFiles(notes));
+    getFiles(notes, user.uid);
     dispatch(recieveLogin(user, notes));
   });
 };
@@ -285,7 +293,6 @@ export const deletNote = data => dispatch => {
     .delete()
     .then(() => {
       const notes = deleteArray(oldNotes, nid);
-      console.log("NEW NOTES" + JSON.stringify(notes));
       dispatch(noteDelet(notes));
       dispatch(deleteConfirm());
     })
@@ -296,25 +303,42 @@ export const deletNote = data => dispatch => {
 
 export const uploadFile = data => dispatch => {
   dispatch(uploadingFile(UPLOADING_FILE));
-  const { nid, file, note, oldNotes } = data;
-  var storageRef = storage.ref();
+  const { uid, nid, file, note, oldNotes } = data;
+  var fileStorageRef = storage
+    .ref()
+    .child("users")
+    .child(uid)
+    .child(nid)
+    .child(file.name);
 
-  var noteStorageRef = storageRef.child(nid);
-  var fileStorageRef = noteStorageRef.child(file.name);
-
-  fileStorageRef.put(file).then(() => {
-    console.log("Uploaded File");
-    fileStorageRef.getDownloadURL().then(url => {
-      note.FILES.push(url);
-      const notes = updateArray(oldNotes, note);
-      dispatch(editNote(notes));
-    });
-  });
+  fileStorageRef.put(file).on(
+    "state_changed",
+    snapShot => {
+      var progress = (snapShot.bytesTransferred / snapShot.totalBytes) * 100;
+      dispatch(updatePercent(progress));
+    },
+    error => {
+      console.log("error: " + error);
+    },
+    () => {
+      console.log("Uploaded File");
+      fileStorageRef.getDownloadURL().then(url => {
+        note.FILES.push(url);
+        const notes = updateArray(oldNotes, note);
+        dispatch(editNote(notes));
+        dispatch(uploadingFile(FILE_UPLOADED));
+      });
+    }
+  );
 };
 
-export const getFiles = notes => dispatch => {
+export const getFiles = (notes, uid) => dispatch => {
   notes.forEach(note => {
-    var listRef = storage.ref().child(note.ID);
+    var listRef = storage
+      .ref()
+      .child("users")
+      .child(uid)
+      .child(note.ID);
     listRef.listAll().then(res => {
       res.items.forEach(itemRef => {
         itemRef.getDownloadURL().then(url => {
@@ -325,18 +349,4 @@ export const getFiles = notes => dispatch => {
   });
 
   dispatch(setFiles(notes));
-};
-
-const deleteArray = (arr, id) => {
-  return arr.filter(function(note) {
-    return note.ID !== id;
-  });
-};
-
-const updateArray = (arr, note) => {
-  var index = arr.findIndex(x => x.ID === note.ID);
-
-  arr[index] = note;
-
-  return arr;
 };
