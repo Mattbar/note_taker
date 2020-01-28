@@ -1,16 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
-import { logoutUser } from "../actions";
-import {
-  Button,
-  Grid,
-  Header,
-  Message,
-  Dimmer,
-  Loader,
-  Segment
-} from "semantic-ui-react";
+import { logoutUser, getUserNotes } from "../actions";
+import { Button, Grid, Header, Message } from "semantic-ui-react";
+
+import { NotesList } from "./NotesList";
 
 const Home = () => {
   const isLoggingOut = useSelector(state => state.auth.isLoggingOut);
@@ -23,27 +17,12 @@ const Home = () => {
     dispatch(logoutUser());
   };
 
-  const NotesList = () => {
-    const notes = useSelector(state => state.auth.notes);
-    console.log("NOTES" + JSON.stringify(notes));
-    if (notes) {
-      return notes.map(note => {
-        return (
-          <Link key={note.ID} to={"/note/" + note.ID}>
-            <Message>{note.TITLE}</Message>
-          </Link>
-        );
-      });
-    } else {
-      return (
-        <Segment>
-          <Dimmer active>
-            <Loader />
-          </Dimmer>
-        </Segment>
-      );
+  useEffect(() => {
+    if (user) {
+      //console.log(user);
+      dispatch(getUserNotes(user));
     }
-  };
+  }, [dispatch, user]);
 
   return (
     <Grid textAlign="center" style={{ height: "100vh" }} verticalAlign="middle">

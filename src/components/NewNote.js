@@ -21,8 +21,8 @@ const Notes = () => {
   const handleSave = () => {
     const uid = user.uid;
     const note = {
-      TITLE: title,
-      BODY: body
+      title: title,
+      body: body
     };
 
     dispatch(saveNote(uid, note, notes));

@@ -8,64 +8,40 @@ import {
   Form,
   TextArea,
   Button,
-  Dimmer,
-  Loader,
   Segment,
   ImageGroup,
-  Image,
   Input,
-  Message,
   Progress
 } from "semantic-ui-react";
+
+import FilesList from "./FileList";
 
 const Notes = props => {
   const { params } = props.match;
   const user = useSelector(state => state.auth.user);
   const deleted = useSelector(state => state.auth.deleted);
-  const notes = useSelector(state => state.auth.notes);
-  const loadingData = useSelector(state => state.auth.isGettingData);
-  const percent = useSelector(state => state.auth.uploadPercent);
+  const notes = useSelector(state => state.notes.notes);
+  const loadingData = useSelector(state => state.files.isGettingData);
+  const percent = useSelector(state => state.files.uploadPercent);
   const dispatch = useDispatch();
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [file, setFile] = useState();
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState();
   const curNote = useRef();
   const inputRef = useRef();
 
   const getNote = useCallback(() => {
     if (notes) {
-      curNote.current = notes.find(n => n.ID === params.id);
+      curNote.current = notes.find(n => n.id === params.id);
       if (curNote.current) {
-        setTitle(curNote.current.TITLE);
-        setBody(curNote.current.BODY);
-        setFiles(curNote.current.FILES);
+        setTitle(curNote.current.title);
+        setBody(curNote.current.body);
+        setFiles(curNote.current.files);
       }
     }
   }, [notes, params.id]);
-
-  const FilesList = () => {
-    if (files && files.length !== 0) {
-      return files.map(url => {
-        return <Image size="small" src={url} alt="" key={url} />;
-      });
-    } else if (files && files.length === 0) {
-      return (
-        <Segment>
-          <Message>No Additional Files</Message>
-        </Segment>
-      );
-    } else {
-      return (
-        <Segment>
-          <Dimmer active>
-            <Loader />
-          </Dimmer>
-        </Segment>
-      );
-    }
-  };
 
   useEffect(() => {
     if (!loadingData) {
@@ -75,10 +51,10 @@ const Notes = props => {
 
   const handleSave = () => {
     const note = {
-      TITLE: title,
-      BODY: body,
-      ID: params.id,
-      FILES: files
+      title: title,
+      body: body,
+      id: params.id,
+      files: files
     };
     const uid = user.uid;
     const oldNotes = notes;
@@ -113,10 +89,10 @@ const Notes = props => {
     }
 
     const note = {
-      TITLE: title,
-      BODY: body,
-      ID: params.id,
-      FILES: files
+      title: title,
+      body: body,
+      id: params.id,
+      files: files
     };
 
     const data = {
@@ -172,9 +148,7 @@ const Notes = props => {
             />
           </Segment>
         </Grid.Row>
-        <ImageGroup>
-          <FilesList />
-        </ImageGroup>
+        <ImageGroup>{files && <FilesList noteFiles={files} />}</ImageGroup>
       </Grid.Column>
     </Grid>
   );

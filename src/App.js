@@ -41,8 +41,7 @@ function App(props) {
 function mapStateToProps(state) {
   return {
     isAuthenticated: state.auth.isAuthenticated,
-    isVerifying: state.auth.isVerifying,
-    notes: state.auth.notes
+    isVerifying: state.auth.isVerifying
   };
 }
 
