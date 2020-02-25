@@ -14,6 +14,7 @@ import {
 const Notes = () => {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [catigory, setCatigory] = useState("");
   const dispatch = useDispatch();
   const user = useSelector(state => state.auth.user);
   const notes = useSelector(state => state.auth.notes);

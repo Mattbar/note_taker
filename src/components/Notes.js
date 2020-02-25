@@ -2,6 +2,7 @@ import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, Redirect } from "react-router-dom";
 import { updateNote, deletNote, uploadFile } from "../actions";
+import * as mmb from "music-metadata-browser";
 import {
   Grid,
   Header,
@@ -76,11 +77,27 @@ const Notes = props => {
     dispatch(deletNote(data));
   };
 
-  const handleFileChange = e => {
+  const handleFileChange = async e => {
     if (e.target.files[0]) {
       const upload = e.target.files[0];
       setFile(upload);
+      try {
+        const metadata = await parseFile(upload);
+        // Update GUI
+        console.log(metadata);
+      } catch (err) {
+        console.log(err);
+      }
     }
+  };
+
+  const parseFile = async upload => {
+    console.log(`Parsing file "${upload.name}" of type ${upload.type}`);
+
+    return mmb.parseBlob(upload, { native: true }).then(metadata => {
+      console.log(`Completed parsing of ${upload.name}:`, metadata);
+      return metadata;
+    });
   };
 
   const handleUploadFile = e => {
@@ -138,6 +155,7 @@ const Notes = props => {
             {loadingData && <Progress percent={percent} indicating />}
             <Input
               type="file"
+              accept="audio/*"
               disabled={loadingData}
               ref={inputRef}
               action={{
